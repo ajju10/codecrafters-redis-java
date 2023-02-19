@@ -1,17 +1,14 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
 
-        //  Uncomment this block to pass the first stage
-        ServerSocket serverSocket = null;
+        ServerSocket serverSocket;
         Socket clientSocket = null;
         int port = 6379;
         try {
@@ -19,9 +16,7 @@ public class Main {
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            out.println("+PONG\r");
-//            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            handleClientRequest(clientSocket);
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         } finally {
@@ -31,6 +26,20 @@ public class Main {
                 }
             } catch (IOException e) {
                 System.out.println("IOException: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void handleClientRequest(Socket socket) throws IOException {
+        final String response = "+PONG\r\n";
+        BufferedReader istream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedWriter ostream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        String line;
+        while ((line = istream.readLine()) != null) {
+            System.out.println("Line: " + line);
+            if (line.equalsIgnoreCase("ping")) {
+                ostream.write(response);
+                ostream.flush();
             }
         }
     }
