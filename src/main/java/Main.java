@@ -1,31 +1,40 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
 
-        ServerSocket serverSocket;
-        Socket clientSocket = null;
+//        ServerSocket serverSocket = null;
         int port = 6379;
+        // Handling multiple clients will be implemented here
+        ServerSocket serverSocket = null;
+
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
-            // Wait for connection from client.
-            clientSocket = serverSocket.accept();
-            handleClientRequest(clientSocket);
         } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
-        } finally {
+            e.printStackTrace();
+        }
+
+        while (true) {
             try {
-                if (clientSocket != null) {
-                    clientSocket.close();
-                }
+                assert serverSocket != null;
+                Socket clientSocket = serverSocket.accept();
+                Runnable r = () -> {
+                    try {
+                        handleClientRequest(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                };
+                Thread t = new Thread(r);
+                System.out.println("Thread started: " + t.getName());
+                t.start();
             } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
