@@ -6,49 +6,31 @@ public class Main {
     public static void main(String[] args) {
         // You can use print statements as follows for debugging, they'll be visible when running tests.
         System.out.println("Logs from your program will appear here!");
-
-//        ServerSocket serverSocket = null;
+        ServerSocket serverSocket;
         int port = 6379;
-        // Handling multiple clients will be implemented here
-        ServerSocket serverSocket = null;
 
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         while (true) {
             try {
-                assert serverSocket != null;
                 Socket clientSocket = serverSocket.accept();
                 Runnable r = () -> {
+                    String res;
                     try {
-                        handleClientRequest(clientSocket);
+                        res = new Request(clientSocket).parse();
+                        clientSocket.getOutputStream().write(res.getBytes());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 };
-                Thread t = new Thread(r);
-                System.out.println("Thread started: " + t.getName());
-                t.start();
+                new Thread(r).start();
             } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static void handleClientRequest(Socket socket) throws IOException {
-        final String response = "+PONG\r\n";
-        BufferedReader istream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        BufferedWriter ostream = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        String line;
-        while ((line = istream.readLine()) != null) {
-            System.out.println("Line: " + line);
-            if (line.equalsIgnoreCase("ping")) {
-                ostream.write(response);
-                ostream.flush();
+                throw new RuntimeException(e);
             }
         }
     }
