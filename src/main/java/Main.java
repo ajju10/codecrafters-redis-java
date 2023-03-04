@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) {
@@ -94,7 +95,7 @@ public class Main {
                 .filter(arg -> !arg.trim().isEmpty() &&
                         !arg.startsWith("*") &&
                         !arg.startsWith("$")
-                ).toList();
+                ).collect(Collectors.toList());
         System.out.println("[" + Thread.currentThread() + "]Received bulk args :" + args);
         return args;
     }
